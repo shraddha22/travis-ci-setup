@@ -26,3 +26,5 @@ token = $SFDC_TOKEN
 url = $SFDC_URL
 sf.version = 35.0
 EOF
+
+cat $SOL_CREDFILE
