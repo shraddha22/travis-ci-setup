@@ -4,5 +4,5 @@ sudo: false
 branches:
      only:
           - master
-before_script: chmod a+x ./src/build/scripts/setup_credentials.sh
-script: chmod a+x ./src/build/scripts/deploy.sh
+before_script: chmod ugo+x ./src/build/scripts/setup_credentials.sh
+script: chmod ugo+x ./src/build/scripts/deploy.sh
