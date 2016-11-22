@@ -1,0 +1,994 @@
+<project name="test rh utils" basedir="." xmlns:au="antlib:org.apache.ant.antunit" xmlns:rh-util="http://www.redhat.com/util" xmlns:ac="http://ant-contrib.sourceforge.net">
+
+	<!-- =========================================================================================== -->
+
+	<import file="../../../ant/1.1/solenopsis-setup.xml"/>
+
+	<!-- =========================================================================================== -->
+
+	<property name="antunit.jar" value="${solenopsis.lib.HOME}/ant-antunit-1.3.jar"/>
+
+	<taskdef uri="antlib:org.apache.ant.antunit" resource="org/apache/ant/antunit/antlib.xml">
+		<classpath>
+			<pathelement location="${antunit.jar}"/>
+		</classpath>
+	</taskdef>
+
+	<!-- =========================================================================================== -->
+
+    <property name="antcontrib.jar" value="${solenopsis.lib.HOME}/ant-contrib-1.0b3.jar"/>
+
+    <taskdef resource="net/sf/antcontrib/antlib.xml" uri="http://ant-contrib.sourceforge.net" description="Needed to use ant-contrib." >
+        <classpath>
+            <fileset file="${antcontrib.jar}"/>
+        </classpath>
+    </taskdef>
+
+	<!-- =========================================================================================== -->
+
+	<import file="${solenopsis.util.HOME}/rh-util.xml"/>
+
+	<!-- =========================================================================================== -->
+
+	<property name="test-rh-util.dir" value="/tmp/${user.name}/test/test-rh-util"/>
+
+	<!-- =========================================================================================== -->
+
+	<target name="setUp">
+		<mkdir dir="${test-rh-util.dir}"/>
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="tearDown">
+		<delete dir="${test-rh-util.dir}"/>
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-baseName">
+		<rh-util:baseName property="test-baseName.baseName1" file="/foo/bar/alpha"/>
+		<au:assertPropertyEquals name="test-baseName.baseName1" value="alpha"/>
+
+		<rh-util:baseName property="test-baseName.baseName2" file="/alpha/foo/bar.txt"/>
+		<au:assertPropertyEquals name="test-baseName.baseName2" value="bar.txt"/>
+
+		<rh-util:baseName property="test-baseName.baseName3" file="theta/beta/zeta"/>
+		<au:assertPropertyEquals name="test-baseName.baseName3" value="zeta"/>
+
+		<rh-util:baseName property="test-baseName.baseName4" file="theta/beta/zeta.txt"/>
+		<au:assertPropertyEquals name="test-baseName.baseName4" value="zeta.txt"/>
+
+		<rh-util:baseName property="test-baseName.baseName5" file="/dir1/dir2/file.txt" suffix=".txt"/>
+		<au:assertPropertyEquals name="test-baseName.baseName5" value="file"/>
+
+		<rh-util:baseName property="test-baseName.baseName6" file="dir1/dir2/file.txt" suffix=".txt"/>
+		<au:assertPropertyEquals name="test-baseName.baseName6" value="file"/>
+
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-baseName-List">
+		<rh-util:baseName-List property="test-baseName-List.baseName1" file="/foo/bar/bar1"/>
+		<au:assertPropertyEquals name="test-baseName-List.baseName1" value="bar1"/>
+
+		<rh-util:baseName-List property="test-baseName-List.baseName2" file="/alpha/foo/bar2.txt"/>
+		<au:assertPropertyEquals name="test-baseName-List.baseName2" value="bar2.txt"/>
+
+		<rh-util:baseName-List property="test-baseName-List.baseName3" file="/alpha/foo/bar3.txt" suffixList=".txt"/>
+		<au:assertPropertyEquals name="test-baseName-List.baseName3" value="bar3"/>
+
+		<rh-util:baseName-List property="test-baseName-List.baseName4" file="/alpha/foo/bar4.txt" suffixList=".alpha .txt"/>
+		<au:assertPropertyEquals name="test-baseName-List.baseName4" value="bar4"/>
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-dirName">
+		<rh-util:dirName property="test-dirName.dirName1" file="/foo/bar/alpha"/>
+		<au:assertPropertyEquals name="test-dirName.dirName1" value="/foo/bar"/>
+
+		<rh-util:dirName property="test-dirName.dirName2" file="/alpha/foo/bar.txt"/>
+		<au:assertPropertyEquals name="test-dirName.dirName2" value="/alpha/foo"/>
+
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-dirIncludedBaseName">
+		<rh-util:dirIncludedBaseName property="test-dirIncludedBaseName.baseName1" file="/foo/bar/alpha"/>
+		<au:assertPropertyEquals name="test-dirIncludedBaseName.baseName1" value="/foo/bar/alpha"/>
+
+		<rh-util:dirIncludedBaseName property="test-dirIncludedBaseName.baseName2" file="/alpha/foo/bar.txt" suffix=".txt"/>
+		<au:assertPropertyEquals name="test-dirIncludedBaseName.baseName2" value="/alpha/foo/bar"/>
+
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-property">
+		<rh-util:property name="test-property.property" value="alpha"/>
+		<au:assertPropertyEquals name="test-property.property" value="alpha"/>
+
+		<rh-util:property name="test-property.property" value="bar.txt"/>
+		<au:assertPropertyEquals name="test-property.property" value="bar.txt"/>
+
+		<rh-util:property name="test-property.property" value="zeta"/>
+		<au:assertPropertyEquals name="test-property.property" value="zeta"/>
+
+		<rh-util:property name="test-property.property" value="zeta.txt"/>
+		<au:assertPropertyEquals name="test-property.property" value="zeta.txt"/>
+
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-propertyDereferenced">
+		<property name="test-propertyDereferenced.property1" value="This is a value"/>
+		<property name="test-propertyDereferenced.partialPropertyName" value="test-propertyDereferenced"/>
+
+		<rh-util:propertyDereference name="test-propertyDereferenced.dereferenced" property="${test-propertyDereferenced.partialPropertyName}.property1"/>
+		<au:assertPropertyEquals name="test-propertyDereferenced.dereferenced" value="This is a value"/>
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-appendProperty">
+		<rh-util:appendProperty name="test-appendProperty.property1" value="alpha"/>
+		<au:assertPropertyEquals name="test-appendProperty.property1" value="alpha"/>
+
+		<rh-util:appendProperty name="test-appendProperty.property1" value="bar.txt"/>
+		<au:assertPropertyEquals name="test-appendProperty.property1" value="alphabar.txt"/>
+
+		<rh-util:appendProperty name="test-appendProperty.property1" value="zeta"/>
+		<au:assertPropertyEquals name="test-appendProperty.property1" value="alphabar.txtzeta"/>
+
+		<rh-util:appendProperty name="test-appendProperty.property1" value="zeta.txt"/>
+		<au:assertPropertyEquals name="test-appendProperty.property1" value="alphabar.txtzetazeta.txt"/>
+
+		<rh-util:appendProperty name="test-appendProperty.property2" value="woot.txt"/>
+		<au:assertPropertyEquals name="test-appendProperty.property2" value="woot.txt"/>
+
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-prependProperty">
+		<rh-util:prependProperty name="test-prependProperty.property1" value="alpha"/>
+		<au:assertPropertyEquals name="test-prependProperty.property1" value="alpha"/>
+
+		<rh-util:prependProperty name="test-prependProperty.property1" value="bar.txt"/>
+		<au:assertPropertyEquals name="test-prependProperty.property1" value="bar.txtalpha"/>
+
+		<rh-util:prependProperty name="test-prependProperty.property1" value="zeta"/>
+		<au:assertPropertyEquals name="test-prependProperty.property1" value="zetabar.txtalpha"/>
+
+		<rh-util:prependProperty name="test-prependProperty.property1" value="zeta.txt"/>
+		<au:assertPropertyEquals name="test-prependProperty.property1" value="zeta.txtzetabar.txtalpha"/>
+
+		<rh-util:prependProperty name="test-prependProperty.property2" value="woot.txt"/>
+		<au:assertPropertyEquals name="test-prependProperty.property2" value="woot.txt"/>
+
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-ifEqual">
+		<rh-util:ifEqual arg1="foo" arg2="foo">
+			<rh-util:then>
+				<rh-util:property name="test-ifEqual.property1" value="EQUAL"/>
+			</rh-util:then>
+		</rh-util:ifEqual>
+		<au:assertPropertyEquals name="test-ifEqual.property1" value="EQUAL"/>
+
+		<rh-util:ifEqual arg1="foo" arg2="foo">
+			<rh-util:then>
+				<rh-util:property name="test-ifEqual.property2" value="EQUAL"/>
+			</rh-util:then>
+			<rh-util:else>
+				<rh-util:property name="test-ifEqual.property2" value="NOT EQUAL"/>
+			</rh-util:else>
+		</rh-util:ifEqual>
+		<au:assertPropertyEquals name="test-ifEqual.property2" value="EQUAL"/>
+
+		<rh-util:ifEqual arg1="foo" arg2="Foo">
+			<rh-util:then>
+				<rh-util:property name="test-ifEqual.property3" value="EQUAL"/>
+			</rh-util:then>
+			<rh-util:else>
+				<rh-util:property name="test-ifEqual.property3" value="NOT EQUAL"/>
+			</rh-util:else>
+		</rh-util:ifEqual>
+		<au:assertPropertyEquals name="test-ifEqual.property3" value="NOT EQUAL"/>
+
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-ifNotEqual">
+		<rh-util:ifNotEqual arg1="foo" arg2="Foo">
+			<rh-util:then>
+				<rh-util:property name="test-ifNotEqual.property1" value="NOT EQUAL"/>
+			</rh-util:then>
+		</rh-util:ifNotEqual>
+
+		<au:assertPropertyEquals name="test-ifNotEqual.property1" value="NOT EQUAL"/>
+
+		<rh-util:ifNotEqual arg1="foo" arg2="Foo">
+			<rh-util:then>
+				<rh-util:property name="test-ifNotEqual.property2" value="NOT EQUAL"/>
+			</rh-util:then>
+			<rh-util:else>
+				<rh-util:property name="test-ifNotEqual.property2" value="EQUAL"/>
+			</rh-util:else>
+		</rh-util:ifNotEqual>
+
+		<au:assertPropertyEquals name="test-ifNotEqual.property2" value="NOT EQUAL"/>
+
+		<rh-util:ifNotEqual arg1="foo" arg2="Foo">
+			<rh-util:then>
+				<rh-util:property name="test-ifNotEqual.property3" value="NOT EQUAL"/>
+			</rh-util:then>
+			<rh-util:else>
+				<rh-util:property name="test-ifNotEqual.property3" value="EQUAL"/>
+			</rh-util:else>
+		</rh-util:ifNotEqual>
+
+		<au:assertPropertyEquals name="test-ifNotEqual.property3" value="NOT EQUAL"/>
+
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-ifContains">
+		<rh-util:ifContains string="foo" substring="foo">
+			<rh-util:then>
+				<rh-util:property name="test-ifContains.property1" value="CONTAINS"/>
+			</rh-util:then>
+		</rh-util:ifContains>
+
+		<au:assertPropertyEquals name="test-ifContains.property1" value="CONTAINS"/>
+
+		<rh-util:ifContains string="foo" substring="foo">
+			<rh-util:then>
+				<rh-util:property name="test-ifContains.property2" value="CONTAINS"/>
+			</rh-util:then>
+			<rh-util:else>
+				<rh-util:property name="test-ifContains.property2" value="NOT CONTAINS"/>
+			</rh-util:else>
+		</rh-util:ifContains>
+
+		<au:assertPropertyEquals name="test-ifContains.property2" value="CONTAINS"/>
+
+		<rh-util:ifContains string="My life as foo bar" substring="foo">
+			<rh-util:then>
+				<rh-util:property name="test-ifContains.property3" value="CONTAINS"/>
+			</rh-util:then>
+			<rh-util:else>
+				<rh-util:property name="test-ifContains.property3" value="NOT CONTAINS"/>
+			</rh-util:else>
+		</rh-util:ifContains>
+
+		<au:assertPropertyEquals name="test-ifContains.property3" value="CONTAINS"/>
+
+		<rh-util:ifContains string="My life as foo bar" substring="Foo">
+			<rh-util:then>
+				<rh-util:property name="test-ifContains.property4" value="CONTAINS"/>
+			</rh-util:then>
+			<rh-util:else>
+				<rh-util:property name="test-ifContains.property4" value="NOT CONTAINS"/>
+			</rh-util:else>
+		</rh-util:ifContains>
+
+		<au:assertPropertyEquals name="test-ifContains.property4" value="NOT CONTAINS"/>
+
+		<rh-util:ifContains string="Mylifeasfoobar" substring="foo">
+			<rh-util:then>
+				<rh-util:property name="test-ifContains.property5" value="CONTAINS"/>
+			</rh-util:then>
+			<rh-util:else>
+				<rh-util:property name="test-ifContains.property5" value="NOT CONTAINS"/>
+			</rh-util:else>
+		</rh-util:ifContains>
+
+		<au:assertPropertyEquals name="test-ifContains.property5" value="CONTAINS"/>
+
+		<rh-util:ifContains string="My life as foo bar" substring="BLAH">
+			<rh-util:then>
+				<rh-util:property name="test-ifContains.property6" value="CONTAINS"/>
+			</rh-util:then>
+			<rh-util:else>
+				<rh-util:property name="test-ifContains.property6" value="NOT CONTAINS"/>
+			</rh-util:else>
+		</rh-util:ifContains>
+
+		<au:assertPropertyEquals name="test-ifContains.property6" value="NOT CONTAINS"/>
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-ifNotContains">
+		<rh-util:ifNotContains string="foo" substring="Foo">
+			<rh-util:then>
+				<rh-util:property name="test-ifNotContains.property1" value="NOT CONTAINS"/>
+			</rh-util:then>
+		</rh-util:ifNotContains>
+
+		<au:assertPropertyEquals name="test-ifNotContains.property1" value="NOT CONTAINS"/>
+
+		<rh-util:ifNotContains string="foo" substring="foo">
+			<rh-util:then>
+				<rh-util:property name="test-ifNotContains.property2" value="NOT CONTAINS"/>
+			</rh-util:then>
+			<rh-util:else>
+				<rh-util:property name="test-ifNotContains.property2" value="CONTAINS"/>
+			</rh-util:else>
+		</rh-util:ifNotContains>
+
+		<au:assertPropertyEquals name="test-ifNotContains.property2" value="CONTAINS"/>
+
+		<rh-util:ifNotContains string="My life as foo bar" substring="foo">
+			<rh-util:then>
+				<rh-util:property name="test-ifNotContains.property3" value="NOT CONTAINS"/>
+			</rh-util:then>
+			<rh-util:else>
+				<rh-util:property name="test-ifNotContains.property3" value="CONTAINS"/>
+			</rh-util:else>
+		</rh-util:ifNotContains>
+
+		<au:assertPropertyEquals name="test-ifNotContains.property3" value="CONTAINS"/>
+
+		<rh-util:ifNotContains string="My life as foo bar" substring="Foo">
+			<rh-util:then>
+				<rh-util:property name="test-ifNotContains.property4" value="NOT CONTAINS"/>
+			</rh-util:then>
+			<rh-util:else>
+				<rh-util:property name="test-ifNotContains.property4" value="CONTAINS"/>
+			</rh-util:else>
+		</rh-util:ifNotContains>
+
+		<au:assertPropertyEquals name="test-ifNotContains.property4" value="NOT CONTAINS"/>
+
+		<rh-util:ifNotContains string="Mylifeasfoobar" substring="foo">
+			<rh-util:then>
+				<rh-util:property name="test-ifNotContains.property5" value="NOT CONTAINS"/>
+			</rh-util:then>
+			<rh-util:else>
+				<rh-util:property name="test-ifNotContains.property5" value="CONTAINS"/>
+			</rh-util:else>
+		</rh-util:ifNotContains>
+
+		<au:assertPropertyEquals name="test-ifNotContains.property5" value="CONTAINS"/>
+
+		<rh-util:ifNotContains string="My life as foo bar" substring="BLAH">
+			<rh-util:then>
+				<rh-util:property name="test-ifNotContains.property6" value="NOT CONTAINS"/>
+			</rh-util:then>
+			<rh-util:else>
+				<rh-util:property name="test-ifNotContains.property6" value="CONTAINS"/>
+			</rh-util:else>
+		</rh-util:ifNotContains>
+
+		<au:assertPropertyEquals name="test-ifNotContains.property6" value="NOT CONTAINS"/>
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-ifSet">
+		<rh-util:property name="test-ifSet.property1" value="I am set"/>
+
+		<rh-util:ifSet property="test-ifSet.property1">
+			<rh-util:then>
+				<rh-util:property name="test-ifSet.compare.property1" value="SET"/>
+			</rh-util:then>
+		</rh-util:ifSet>
+
+		<au:assertPropertyEquals name="test-ifSet.compare.property1" value="SET"/>
+
+		<rh-util:property name="test-ifSet.property2" value="I am set"/>
+
+		<rh-util:ifSet property="test-ifSet.property2">
+			<rh-util:then>
+				<rh-util:property name="test-ifSet.compare.property2" value="SET"/>
+			</rh-util:then>
+			<rh-util:else>
+				<rh-util:property name="test-ifSet.compare.property2" value="NOT SET"/>
+			</rh-util:else>
+		</rh-util:ifSet>
+
+		<au:assertPropertyEquals name="test-ifSet.compare.property2" value="SET"/>
+
+
+		<rh-util:ifSet property="test-ifSet.compare.property3">
+			<rh-util:then>
+				<rh-util:property name="test-ifSet.compare.property3" value="SET"/>
+			</rh-util:then>
+			<rh-util:else>
+				<rh-util:property name="test-ifSet.compare.property3" value="NOT SET"/>
+			</rh-util:else>
+		</rh-util:ifSet>
+
+		<au:assertPropertyEquals name="test-ifSet.compare.property3" value="NOT SET"/>
+
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-ifNotSet">
+		<rh-util:ifNotSet property="test-ifNotSet.property1">
+			<rh-util:then>
+				<rh-util:property name="test-ifNotSet.compare.property1" value="NOT SET"/>
+			</rh-util:then>
+		</rh-util:ifNotSet>
+
+		<au:assertPropertyEquals name="test-ifNotSet.compare.property1" value="NOT SET"/>
+
+		<rh-util:ifNotSet property="test-ifNotSet.property2">
+			<rh-util:then>
+				<rh-util:property name="test-ifNotSet.compare.property2" value="NOT SET"/>
+			</rh-util:then>
+			<rh-util:else>
+				<rh-util:property name="test-ifNotSet.compare.property2" value="SET"/>
+			</rh-util:else>
+		</rh-util:ifNotSet>
+
+		<au:assertPropertyEquals name="test-ifNotSet.compare.property2" value="NOT SET"/>
+
+
+		<rh-util:property  name="test-ifNotSet.compare.property3" value="I am set"/>
+
+		<rh-util:ifNotSet property="test-ifNotSet.compare.property3">
+			<rh-util:then>
+				<rh-util:property name="test-ifNotSet.compare.property3" value="NOT SET"/>
+			</rh-util:then>
+			<rh-util:else>
+				<rh-util:property name="test-ifNotSet.compare.property3" value="SET"/>
+			</rh-util:else>
+		</rh-util:ifNotSet>
+
+		<au:assertPropertyEquals name="test-ifNotSet.compare.property3" value="SET"/>
+
+	</target>
+
+	<!-- =========================================================================================== -->
+
+    <target name="test-ifFileExists">
+        <tstamp>
+            <format property="test-ifFileExists.TIMESTAMP" pattern="yyyyMMddHHmmssSSSS"/>
+        </tstamp>
+
+        <rh-util:property name="test-ifFileExists.FILE" value="${java.io.tmpdir}/solenopsis_${user.name}_${test-ifFileExists.TIMESTAMP}"/>
+
+        <touch file="${test-ifFileExists.FILE}"/>
+
+        <rh-util:property name="test-ifFileExists.FOUND" value="NO"/>
+
+        <rh-util:ifFileExists file="${test-ifFileExists.FILE}">
+            <rh-util:then>
+                <rh-util:property name="test-ifFileExists.FOUND" value="YES"/>
+            </rh-util:then>
+        </rh-util:ifFileExists>
+
+        <delete file="${test-ifFileExists.FILE}"/>
+
+		<au:assertPropertyEquals name="test-ifFileExists.FOUND" value="YES"/>
+	</target>
+
+	<!-- =========================================================================================== -->
+
+    <target name="test-ifFileNotExists">
+        <tstamp>
+            <format property="test-ifFileNotExists.TIMESTAMP" pattern="yyyyMMddHHmmssSSSS"/>
+        </tstamp>
+
+        <rh-util:property name="test-ifFileNotExists.FILE" value="${java.io.tmpdir}/solenopsis_${user.name}_${test-ifFileNotExists.TIMESTAMP}"/>
+
+        <rh-util:property name="test-ifFileNotExists.FOUND" value="NO"/>
+
+        <rh-util:ifFileNotExists file="${test-ifFileNotExists.FILE}">
+            <rh-util:then>
+                <rh-util:property name="test-ifFileNotExists.FOUND" value="YES"/>
+            </rh-util:then>
+        </rh-util:ifFileNotExists>
+
+		<au:assertPropertyEquals name="test-ifFileNotExists.FOUND" value="YES"/>
+	</target>
+
+	<!-- =========================================================================================== -->
+
+    <target name="test-assertFileExists">
+        <tstamp>
+            <format property="test-assertFileExists.TIMESTAMP" pattern="yyyyMMddHHmmssSSSS"/>
+        </tstamp>
+
+        <rh-util:property name="test-assertFileExists.FILE" value="${java.io.tmpdir}/solenopsis_${user.name}_${test-assertFileExists.TIMESTAMP}"/>
+
+        <touch file="${test-assertFileExists.FILE}"/>
+
+        <ac:trycatch property="test-assertFileExists.FAILURE">
+            <ac:try>
+                <rh-util:assertFileExists file="${test-assertFileExists.FILE}"/>
+            </ac:try>
+
+            <ac:catch>
+                <fail message="Should NOT have failed [${test-assertFileExists.FILE}]!"/>
+            </ac:catch>
+
+            <ac:finally>
+                <delete file="${test-assertFileExists.FILE}"/>
+            </ac:finally>
+        </ac:trycatch>
+	</target>
+
+	<!-- =========================================================================================== -->
+
+    <target name="test-assertFileNotExists">
+        <tstamp>
+            <format property="test-assertFileNotExists.TIMESTAMP" pattern="yyyyMMddHHmmssSSSS"/>
+        </tstamp>
+
+        <rh-util:property name="test-assertFileNotExists.FILE" value="${java.io.tmpdir}/solenopsis_${user.name}_${test-assertFileNotExists.TIMESTAMP}"/>
+
+        <ac:trycatch property="test-assertFileNotExists.FAILURE">
+            <ac:try>
+                <rh-util:assertFileNotExists file="${test-assertFileNotExists.FILE}"/>
+            </ac:try>
+
+            <ac:catch>
+                <fail message="Should NOT have failed [${test-assertFileNotExists.FILE}]!"/>
+            </ac:catch>
+        </ac:trycatch>
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-processList">
+		<rh-util:processList param="test-processList.property1" list="1 2 3 4">
+			<rh-util:prependProperty name="test-processList.result1" value="@{test-processList.property1}"/>
+		</rh-util:processList>
+
+		<au:assertPropertyEquals name="test-processList.result1" value="4321"/>
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-processPropertyAsList">
+		<property name="test-processPropertyAsList.property1" value="1 2 3 4"/>
+
+		<rh-util:processPropertyAsList param="test-processPropertyAsList.param1" property="test-processPropertyAsList.property1">
+			<rh-util:prependProperty name="test-processPropertyAsList.result1" value="@{test-processPropertyAsList.param1}"/>
+		</rh-util:processPropertyAsList>
+
+		<au:assertPropertyEquals name="test-processPropertyAsList.result1" value="4321"/>
+
+		<rh-util:property name="test-processPropertyAsList.result2" value=""/>
+
+		<rh-util:processPropertyAsList param="test-processPropertyAsList.param2" property="test-processPropertyAsList.property2">
+			<rh-util:prependProperty name="test-processPropertyAsList.result2" value="@{test-processPropertyAsList.param2}"/>
+		</rh-util:processPropertyAsList>
+
+		<au:assertPropertyEquals name="test-processPropertyAsList.result2" value=""/>
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-branch">
+		<rh-util:branch property="test-branch.property0" root="/home/foo/" fullPath="/home/foo/bar/alpha.txt"/>
+
+		<au:assertPropertyEquals name="test-branch.property0" value="bar/alpha.txt"/>
+
+		<rh-util:branch property="test-branch.property1" root="/home/foo//" fullPath="/home/foo/bar/alpha.txt"/>
+
+		<au:assertPropertyEquals name="test-branch.property1" value="bar/alpha.txt"/>
+
+		<rh-util:branch property="test-branch.property2" root="/home/foo///" fullPath="/home/foo/bar/alpha.txt"/>
+
+		<au:assertPropertyEquals name="test-branch.property2" value="bar/alpha.txt"/>
+
+		<rh-util:branch property="test-branch.property3" root="/home/foo" fullPath="/home/foo/bar/alpha.txt"/>
+
+		<au:assertPropertyEquals name="test-branch.property3" value="bar/alpha.txt"/>
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-fileDiff">
+		<property name="test-fileDiff.dir"  value="${test-rh-util.dir}/test-fileDiff"/>
+
+		<mkdir dir="${test-fileDiff.dir}"/>
+
+		<property name="test-fileDiff.file1"  value="${test-fileDiff.dir}/file1.txt"/>
+		<property name="test-fileDiff.file2"  value="${test-fileDiff.dir}/file2.txt"/>
+
+		<echo message="A${line.separator}" file="${test-fileDiff.file1}" append="true"/>
+		<echo message="B${line.separator}" file="${test-fileDiff.file1}" append="true"/>
+		<echo message="D${line.separator}" file="${test-fileDiff.file1}" append="true"/>
+		<echo message="F${line.separator}" file="${test-fileDiff.file1}" append="true"/>
+
+		<echo message="A${line.separator}" file="${test-fileDiff.file2}" append="true"/>
+		<echo message="B${line.separator}" file="${test-fileDiff.file2}" append="true"/>
+		<echo message="C${line.separator}" file="${test-fileDiff.file2}" append="true"/>
+		<echo message="D${line.separator}" file="${test-fileDiff.file2}" append="true"/>
+		<echo message="E${line.separator}" file="${test-fileDiff.file2}" append="true"/>
+		<echo message="F${line.separator}" file="${test-fileDiff.file2}" append="true"/>
+		<echo message="G${line.separator}" file="${test-fileDiff.file2}" append="true"/>
+		<echo message="H${line.separator}" file="${test-fileDiff.file2}" append="true"/>
+
+		<rh-util:fileDiff property="test-fileDiff.diff" file1="${test-fileDiff.file1}" file2="${test-fileDiff.file2}"/>
+
+		<au:assertPropertyEquals name="test-fileDiff.diff" value="C E G H"/>
+	</target>
+
+	<!-- =========================================================================================== -->
+
+    <!--
+	<target name="test-dirDiff">
+		<property name="test-dirDiff.src.dir"  value="${test-rh-util.dir}/test-dirDiff-src"/>
+		<property name="test-dirDiff.dest.dir" value="${test-rh-util.dir}/test-dirDiff-dest"/>
+
+		<mkdir dir="${test-dirDiff.src.dir}"/>
+		<mkdir dir="${test-dirDiff.dest.dir}"/>
+
+
+        <property name="test-dirDiff.src.file1"  value="${test-dirDiff.src.dir}/file1.txt"/>
+        <property name="test-dirDiff.dest.file1" value="${test-dirDiff.dest.dir}/file1.txt"/>
+
+        <echo message="A${line.separator}1" file="${test-dirDiff.src.file1}"/>
+        <echo message="A${line.separator}1" file="${test-dirDiff.dest.file1}"/>
+
+
+        <property name="test-dirDiff.src.dir2"  value="${test-dirDiff.src.dir}/same"/>
+        <property name="test-dirDiff.dest.dir2" value="${test-dirDiff.dest.dir}/same"/>
+
+        <mkdir dir="${test-dirDiff.src.dir2}"/>
+        <mkdir dir="${test-dirDiff.dest.dir2}"/>
+
+        <property name="test-dirDiff.src.file2"  value="${test-dirDiff.src.dir2}/file2.txt"/>
+        <property name="test-dirDiff.dest.file2" value="${test-dirDiff.dest.dir2}/file2.txt"/>
+
+        <echo message="B${line.separator}2" file="${test-dirDiff.src.file2}"/>
+        <echo message="B${line.separator}2" file="${test-dirDiff.dest.file2}"/>
+
+
+        <property name="test-dirDiff.src.dir3"  value="${test-dirDiff.src.dir}/dir3"/>
+
+        <mkdir dir="${test-dirDiff.src.dir3}"/>
+
+        <property name="test-dirDiff.src.file3"  value="${test-dirDiff.src.dir3}/file3.txt"/>
+
+        <echo message="C${line.separator}3" file="${test-dirDiff.src.file3}"/>
+
+
+        <property name="test-dirDiff.dest.dir4"  value="${test-dirDiff.dest.dir}/dir4"/>
+        <property name="test-dirDiff.dest.file4"  value="${test-dirDiff.dest.dir4}/file4.txt"/>
+
+        <echo message="D${line.separator}4" file="${test-dirDiff.dest.file4}"/>
+
+
+        <rh-util:dirDiff addProperty="test-dirDiff.ADD" modProperty="test-dirDiff.MOD" delProperty="test-dirDiff.DEL" src="${test-dirDiff.src.dir}" dest="${test-dirDiff.dest.dir}" delimiter=":"/>
+	</target>
+    -->
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-listDiffMissing">
+		<rh-util:listDiffMissing property="test-listDiffMissing.DIFF1" list1="B,D" list2="A,B,C,D" delimiter=","/>
+		<au:assertPropertyEquals name="test-listDiffMissing.DIFF1" value="A,C"/>
+
+		<rh-util:listDiffMissing property="test-listDiffMissing.DIFF2" list1="A,B,C" list2="A,B,C,D" delimiter=","/>
+		<au:assertPropertyEquals name="test-listDiffMissing.DIFF2" value="D"/>
+
+		<rh-util:listDiffMissing property="test-listDiffMissing.DIFF3" list1="A,B,C,D" list2="A,B,C,D" delimiter=","/>
+		<au:assertPropertyEquals name="test-listDiffMissing.DIFF3" value=""/>
+
+		<rh-util:listDiffMissing property="test-listDiffMissing.DIFF4" list1="A" list2="B" delimiter=","/>
+		<au:assertPropertyEquals name="test-listDiffMissing.DIFF4" value="B"/>
+
+		<rh-util:listDiffMissing property="test-listDiffMissing.DIFF5" list1="" list2="E" delimiter=","/>
+		<au:assertPropertyEquals name="test-listDiffMissing.DIFF5" value="E"/>
+
+		<rh-util:listDiffMissing property="test-listDiffMissing.DIFF6" list1="" list2="A,B,C,D" delimiter=","/>
+		<au:assertPropertyEquals name="test-listDiffMissing.DIFF6" value="A,B,C,D"/>
+
+		<rh-util:listDiffMissing property="test-listDiffMissing.DIFF7" list1="A,B,C,D" list2="" delimiter=","/>
+		<au:assertPropertyEquals name="test-listDiffMissing.DIFF7" value=""/>
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-dirDiffMissing">
+		<property name="test-dirDiffMissing.rootDir" value="${test-rh-util.dir}/test-dirDiffMissing"/>
+		<property name="test-dirDiffMissing.dir1"    value="${test-dirDiffMissing.rootDir}/dir1"/>
+		<property name="test-dirDiffMissing.dir2"    value="${test-dirDiffMissing.rootDir}/dir2"/>
+
+		<mkdir dir="${test-dirDiffMissing.dir1}"/>
+		<mkdir dir="${test-dirDiffMissing.dir2}"/>
+
+		<touch file="${test-dirDiffMissing.dir1}/file1.txt"/>
+
+		<touch file="${test-dirDiffMissing.dir2}/file1.txt"/>
+
+		<rh-util:dirDiffMissing property="test-dirDiffMissing.diff" dir1="${test-dirDiffMissing.dir1}" dir2="${test-dirDiffMissing.dir2}"/>
+
+		<au:assertPropertyEquals name="test-dirDiffMissing.diff" value=""/>
+
+		<delete dir="${test-dirDiffMissing.dir1}"/>
+		<delete dir="${test-dirDiffMissing.dir2}"/>
+
+		<mkdir dir="${test-dirDiffMissing.dir1}"/>
+		<mkdir dir="${test-dirDiffMissing.dir2}"/>
+
+		<touch file="${test-dirDiffMissing.dir1}/file1.txt"/>
+
+		<touch file="${test-dirDiffMissing.dir2}/file1.txt"/>
+		<touch file="${test-dirDiffMissing.dir2}/file2 alpha.txt"/>
+		<touch file="${test-dirDiffMissing.dir2}/file3 beta.txt"/>
+
+		<rh-util:dirDiffMissing property="test-dirDiffMissing.diff" dir1="${test-dirDiffMissing.dir1}" dir2="${test-dirDiffMissing.dir2}" delimiter=":"/>
+
+		<au:assertPropertyEquals name="test-dirDiffMissing.diff" value="file2 alpha.txt:file3 beta.txt"/>
+
+		<!--
+			If dir2 does not exists, no failure should arise...
+		-->
+		<delete dir="${test-dirDiffMissing.dir2}"/>
+
+		<rh-util:dirDiffMissing property="test-dirDiffMissing.diff" dir1="${test-dirDiffMissing.dir1}" dir2="${test-dirDiffMissing.dir2}"/>
+
+		<au:assertPropertyEquals name="test-dirDiffMissing.diff" value=""/>
+	</target>
+
+	<!-- =========================================================================================== -->
+
+    <target name="test-find-value-in-files">
+        <property name="test-find-value-in-files.ROOT_DIR" value="${test-rh-util.dir}/test-find-value-in-files"/>
+        <mkdir dir="${test-find-value-in-files.ROOT_DIR}"/>
+
+        <echo file="${test-find-value-in-files.ROOT_DIR}/file1.txt">
+            Hello world
+            This is it
+            @myKey file1-value-1-1
+            Wow
+            @myKey file1-value-2-1 file1-value-2-2
+        </echo>
+
+        <echo file="${test-find-value-in-files.ROOT_DIR}/file2.txt">
+            /**
+            * @myKey file2-value-1-1
+            *@myKey file2-value-2-1
+            * Hello world
+            * This is it
+            * Wow
+            */
+        </echo>
+
+        <echo file="${test-find-value-in-files.ROOT_DIR}/file3.txt">
+            /**
+            * Hello world
+            * This is it
+            * Wow
+            */
+        </echo>
+
+        <echo file="${test-find-value-in-files.ROOT_DIR}/file4.txt">
+            Hello world
+            This is it
+            Wow
+        </echo>
+
+        <rh-util:find-value-in-files baseDir="${test-find-value-in-files.ROOT_DIR}" key="@myKey" valuesFound="test-find-value-in-files.NON_WHITE_SPACE_VALUES"/>
+
+        <au:assertPropertyContains name="test-find-value-in-files.NON_WHITE_SPACE_VALUES" value="file1-value-1-1"/>
+        <au:assertPropertyContains name="test-find-value-in-files.NON_WHITE_SPACE_VALUES" value="file1-value-2-1"/>
+        <au:assertPropertyContains name="test-find-value-in-files.NON_WHITE_SPACE_VALUES" value="file1-value-2-2"/>
+        <au:assertPropertyContains name="test-find-value-in-files.NON_WHITE_SPACE_VALUES" value="file2-value-1-1"/>
+        <au:assertPropertyContains name="test-find-value-in-files.NON_WHITE_SPACE_VALUES" value="file2-value-2-1"/>
+
+        <rh-util:find-value-in-files baseDir="${test-find-value-in-files.ROOT_DIR}" key="(\s)*(\s)\*(\s)*@myKey" valuesFound="test-find-value-in-files.WHITE_SPACE_VALUES"/>
+
+        <au:assertFalse>
+            <contains string="${test-find-value-in-files.WHITE_SPACE_VALUES}" substring="file1-value-1-1"/>
+        </au:assertFalse>
+
+        <au:assertFalse>
+            <contains string="${test-find-value-in-files.WHITE_SPACE_VALUES}" substring="file1-value-2-2"/>
+        </au:assertFalse>
+
+        <au:assertPropertyContains name="test-find-value-in-files.WHITE_SPACE_VALUES" value="file2-value-1-1"/>
+        <au:assertPropertyContains name="test-find-value-in-files.WHITE_SPACE_VALUES" value="file2-value-2-1"/>
+
+        <rh-util:find-value-in-files baseDir="${test-find-value-in-files.ROOT_DIR}" key="@bogusKey" valuesFound="test-find-value-in-files.BOGUS_VALUES"/>
+        <au:assertEquals message="Should be empty for bogus key!  [${test-find-value-in-files.BOGUS_VALUES}]" expected="" actual="${test-find-value-in-files.BOGUS_VALUES}"/>
+
+        <rh-util:find-value-in-files baseDir="${test-find-value-in-files.ROOT_DIR}/file1.txt" key="@myKey" valuesFound="test-find-value-in-files.VALUES_FOR_FILE"/>
+        <au:assertEquals message="Should be empty when using a file!  [${test-find-value-in-files.VALUES_FOR_FILE}]" expected="" actual="${test-find-value-in-files.VALUES_FOR_FILE}"/>
+
+        <mkdir dir="${test-find-value-in-files.ROOT_DIR}/emptyDir"/>
+        <rh-util:find-value-in-files baseDir="${test-find-value-in-files.ROOT_DIR}/emptyDir" key="@myKey" valuesFound="test-find-value-in-files.VALUES_FOR_EMPTY_DIR"/>
+        <au:assertEquals message="Should be empty when using an empty dir!  [${test-find-value-in-files.VALUES_FOR_EMPTY_DIR}]" expected="" actual="${test-find-value-in-files.VALUES_FOR_EMPTY_DIR}"/>
+
+        <rh-util:find-value-in-files baseDir="${test-find-value-in-files.ROOT_DIR}/bogusDir" key="@myKey" valuesFound="test-find-value-in-files.VALUES_FOR_BOGUS_DIR"/>
+        <au:assertEquals message="Should be empty when using a nonexistent dir!  [${test-find-value-in-files.VALUES_FOR_BOGUS_DIR}]" expected="" actual="${test-find-value-in-files.VALUES_FOR_BOGUS_DIR}"/>
+
+        <property name="test-find-value-in-files.CLASS_DIR" value="${test-find-value-in-files.ROOT_DIR}/class"/>
+        <mkdir dir="${test-find-value-in-files.CLASS_DIR}"/>
+        <dirname file="${ant.file.test-rh-util.xml}" property="test-find-value-in-files.CURRENT_DIR"/>
+        <copy file="${test-find-value-in-files.CURRENT_DIR}/TestClass.cls" todir="${test-find-value-in-files.CLASS_DIR}"/>
+        <copy file="${test-find-value-in-files.CURRENT_DIR}/TestClass.cls-meta.xml" todir="${test-find-value-in-files.CLASS_DIR}"/>
+
+        <rh-util:find-value-in-files baseDir="${test-find-value-in-files.CLASS_DIR}" key="(\s)*\*(\s)*@testClasses" valuesFound="test-find-value-in-files.ACTUAL_CLASS_VALUE"/>
+        <au:assertEquals message="Should have found the value [FooBar Alpha theta zeta] but was [${test-find-value-in-files.ACTUAL_CLASS_VALUE}]" expected="FooBar Alpha theta zeta" actual="${test-find-value-in-files.ACTUAL_CLASS_VALUE}"/>
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-git-status">
+		<!--
+			TO DO!!!!
+		-->
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-xmlStartElement">
+		<rh-util:xmlStartElement property="test-xmlStartElement.property1" name="Foo" elementDelimiter=""/>
+		<au:assertPropertyEquals name="test-xmlStartElement.property1" value="&lt;Foo&gt;"/>
+
+		<rh-util:xmlStartElement property="test-xmlStartElement.property1" name="Bar" elementDelimiter=""/>
+		<au:assertPropertyEquals name="test-xmlStartElement.property1" value="&lt;Foo&gt;&lt;Bar&gt;"/>
+
+		<rh-util:xmlStartElement property="test-xmlStartElement.property1" name="Alpha" namespace="alpha.foo.bar" elementDelimiter=""/>
+		<au:assertPropertyEquals name="test-xmlStartElement.property1" value="&lt;Foo&gt;&lt;Bar&gt;&lt;Alpha xmlns=&quot;alpha.foo.bar&quot;&gt;"/>
+
+		<rh-util:xmlStartElement property="test-xmlStartElement.property1" name="Theta" namespace="bar.foo" elementDelimiter=""/>
+		<au:assertPropertyEquals name="test-xmlStartElement.property1" value="&lt;Foo&gt;&lt;Bar&gt;&lt;Alpha xmlns=&quot;alpha.foo.bar&quot;&gt;&lt;Theta xmlns=&quot;bar.foo&quot;&gt;"/>
+
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-xmlEndElement">
+		<rh-util:xmlEndElement property="test-xmlEndElement.property1" name="Foo" elementDelimiter=""/>
+		<au:assertPropertyEquals name="test-xmlEndElement.property1" value="&lt;/Foo&gt;"/>
+
+		<rh-util:xmlEndElement property="test-xmlEndElement.property1" name="Bar" elementDelimiter=""/>
+		<au:assertPropertyEquals name="test-xmlEndElement.property1" value="&lt;/Foo&gt;&lt;/Bar&gt;"/>
+
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-xmlElement">
+		<rh-util:xmlElement property="test-xmlElement.property1" name="Foo" value="10" elementDelimiter=""/>
+		<au:assertPropertyEquals name="test-xmlElement.property1" value="&lt;Foo&gt;10&lt;/Foo&gt;"/>
+
+		<rh-util:xmlElement property="test-xmlElement.property1" name="Bar" value="20.5" elementDelimiter=""/>
+		<au:assertPropertyEquals name="test-xmlElement.property1" value="&lt;Foo&gt;10&lt;/Foo&gt;&lt;Bar&gt;20.5&lt;/Bar&gt;"/>
+
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-xmlElementList">
+		<rh-util:xmlElementList property="test-xmlElement.property1" name="Foo" values="10 20 30" elementDelimiter=""/>
+		<au:assertPropertyEquals name="test-xmlElement.property1" value="&lt;Foo&gt;10&lt;/Foo&gt;&lt;Foo&gt;20&lt;/Foo&gt;&lt;Foo&gt;30&lt;/Foo&gt;"/>
+
+		<rh-util:xmlElementList property="test-xmlElement.property2" name="Bar" values="40" elementDelimiter=""/>
+		<au:assertPropertyEquals name="test-xmlElement.property2" value="&lt;Bar&gt;40&lt;/Bar&gt;"/>
+
+		<rh-util:xmlElementList property="test-xmlElement.property3" name="Foo" values="10 20 30" namespace="abc.def" elementDelimiter=""/>
+		<au:assertPropertyEquals name="test-xmlElement.property3" value="&lt;Foo xmlns=&quot;abc.def&quot;&gt;10&lt;/Foo&gt;&lt;Foo xmlns=&quot;abc.def&quot;&gt;20&lt;/Foo&gt;&lt;Foo xmlns=&quot;abc.def&quot;&gt;30&lt;/Foo&gt;"/>
+
+		<rh-util:xmlElementList property="test-xmlElement.property4" name="Bar" values="40" namespace="abc.def" elementDelimiter=""/>
+		<au:assertPropertyEquals name="test-xmlElement.property4" value="&lt;Bar xmlns=&quot;abc.def&quot;&gt;40&lt;/Bar&gt;"/>
+
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-xmlElementFiles">
+		<rh-util:xmlElementFiles property="test-xmlElementFiles.property1" name="Foo" elementDelimiter="">
+			<path> 
+				<filelist dir="." files="file1.txt file2.txt"/>
+			</path>
+		</rh-util:xmlElementFiles>
+
+		<au:assertPropertyEquals name="test-xmlElementFiles.property1" value="&lt;Foo&gt;file1.txt&lt;/Foo&gt;&lt;Foo&gt;file2.txt&lt;/Foo&gt;"/>
+
+		<rh-util:xmlElementFiles property="test-xmlElementFiles.property2" name="Bar" elementDelimiter="">
+			<path> 
+				<filelist dir="." files="file3.txt"/>
+			</path>
+		</rh-util:xmlElementFiles>
+
+		<au:assertPropertyEquals name="test-xmlElementFiles.property2" value="&lt;Bar&gt;file3.txt&lt;/Bar&gt;"/>
+
+		<rh-util:xmlElementFiles property="test-xmlElementFiles.property3" name="Foo" namespace="abc.def" elementDelimiter="">
+			<path> 
+				<filelist dir="." files="file1.txt file2.txt"/>
+			</path>
+		</rh-util:xmlElementFiles>
+
+		<au:assertPropertyEquals name="test-xmlElementFiles.property3" value="&lt;Foo xmlns=&quot;abc.def&quot;&gt;file1.txt&lt;/Foo&gt;&lt;Foo xmlns=&quot;abc.def&quot;&gt;file2.txt&lt;/Foo&gt;"/>
+
+		<rh-util:xmlElementFiles property="test-xmlElementFiles.property4" name="Bar" namespace="abc.def" elementDelimiter="">
+			<path> 
+				<filelist dir="." files="file3.txt"/>
+			</path>
+		</rh-util:xmlElementFiles>
+
+		<au:assertPropertyEquals name="test-xmlElementFiles.property4" value="&lt;Bar xmlns=&quot;abc.def&quot;&gt;file3.txt&lt;/Bar&gt;"/>
+
+	</target>
+
+	<!-- =========================================================================================== -->
+
+	<target name="test-xmlElementContainer">
+		<rh-util:xmlElementContainer property="test-xmlElement.property1" name="Foo" elementDelimiter="">
+			<rh-util:xmlElement property="test-xmlElement.property1" name="Child1" value="10" elementDelimiter=""/>
+			<rh-util:xmlElement property="test-xmlElement.property1" name="Child2" value="20" elementDelimiter=""/>
+		</rh-util:xmlElementContainer>
+
+		<au:assertPropertyEquals name="test-xmlElement.property1" value="&lt;Foo&gt;&lt;Child1&gt;10&lt;/Child1&gt;&lt;Child2&gt;20&lt;/Child2&gt;&lt;/Foo&gt;"/>
+
+		<rh-util:xmlElementContainer property="test-xmlElement.property1" name="Bar" elementDelimiter="">
+			<rh-util:xmlElement property="test-xmlElement.property1" name="Child11" value="101" elementDelimiter=""/>
+			<rh-util:xmlElement property="test-xmlElement.property1" name="Child21" value="201" elementDelimiter=""/>
+		</rh-util:xmlElementContainer>
+
+		<au:assertPropertyEquals name="test-xmlElement.property1" value="&lt;Foo&gt;&lt;Child1&gt;10&lt;/Child1&gt;&lt;Child2&gt;20&lt;/Child2&gt;&lt;/Foo&gt;&lt;Bar&gt;&lt;Child11&gt;101&lt;/Child11&gt;&lt;Child21&gt;201&lt;/Child21&gt;&lt;/Bar&gt;"/>
+
+		<rh-util:xmlElementContainer property="test-xmlElement.property2" name="Foo" elementDelimiter="">
+		</rh-util:xmlElementContainer>
+
+		<au:assertPropertyEquals name="test-xmlElement.property2" value="&lt;Foo&gt;&lt;/Foo&gt;"/>
+
+		<rh-util:xmlElementContainer property="test-xmlElement.property3" name="Bar" elementDelimiter=""/>
+
+		<au:assertPropertyEquals name="test-xmlElement.property3" value="&lt;Bar&gt;&lt;/Bar&gt;"/>
+
+
+		<rh-util:xmlElementContainer property="test-xmlElement.property4" name="Foo" namespace="abc.def" elementDelimiter="">
+			<rh-util:xmlElement property="test-xmlElement.property4" name="Child1" value="10" elementDelimiter=""/>
+			<rh-util:xmlElement property="test-xmlElement.property4" name="Child2" value="20" elementDelimiter=""/>
+		</rh-util:xmlElementContainer>
+
+		<au:assertPropertyEquals name="test-xmlElement.property4" value="&lt;Foo xmlns=&quot;abc.def&quot;&gt;&lt;Child1&gt;10&lt;/Child1&gt;&lt;Child2&gt;20&lt;/Child2&gt;&lt;/Foo&gt;"/>
+
+		<rh-util:xmlElementContainer property="test-xmlElement.property4" name="Bar" namespace="abc.def" elementDelimiter="">
+			<rh-util:xmlElement property="test-xmlElement.property4" name="Child11" value="101" elementDelimiter=""/>
+			<rh-util:xmlElement property="test-xmlElement.property4" name="Child21" value="201" elementDelimiter=""/>
+		</rh-util:xmlElementContainer>
+
+		<au:assertPropertyEquals name="test-xmlElement.property4" value="&lt;Foo xmlns=&quot;abc.def&quot;&gt;&lt;Child1&gt;10&lt;/Child1&gt;&lt;Child2&gt;20&lt;/Child2&gt;&lt;/Foo&gt;&lt;Bar xmlns=&quot;abc.def&quot;&gt;&lt;Child11&gt;101&lt;/Child11&gt;&lt;Child21&gt;201&lt;/Child21&gt;&lt;/Bar&gt;"/>
+
+		<rh-util:xmlElementContainer property="test-xmlElement.property5" name="Foo" namespace="abc.def" elementDelimiter="">
+		</rh-util:xmlElementContainer>
+
+		<au:assertPropertyEquals name="test-xmlElement.property5" value="&lt;Foo xmlns=&quot;abc.def&quot;&gt;&lt;/Foo&gt;"/>
+
+		<rh-util:xmlElementContainer property="test-xmlElement.property6" name="Bar" namespace="abc.def" elementDelimiter=""/>
+
+		<au:assertPropertyEquals name="test-xmlElement.property6" value="&lt;Bar xmlns=&quot;abc.def&quot;&gt;&lt;/Bar&gt;"/>
+
+
+		<rh-util:xmlElementContainer property="test-xmlElement.property7" name="Foo" namespace="abc.def" elementDelimiter="">
+			<rh-util:xmlElement property="test-xmlElement.property7" name="Child1" value="10" namespace="abc.def" elementDelimiter=""/>
+		</rh-util:xmlElementContainer>
+
+		<au:assertPropertyEquals name="test-xmlElement.property7" value="&lt;Foo xmlns=&quot;abc.def&quot;&gt;&lt;Child1 xmlns=&quot;abc.def&quot;&gt;10&lt;/Child1&gt;&lt;/Foo&gt;"/>
+
+
+		<rh-util:xmlElementContainer property="test-xmlElement.property8" name="Foo" namespace="abc.def" elementDelimiter="">
+			<rh-util:xmlElement property="test-xmlElement.property8" name="Child1" value="10" namespace="abc.def" elementDelimiter=""/>
+			<rh-util:xmlElement property="test-xmlElement.property8" name="Child2" value="20" namespace="abc.def" elementDelimiter=""/>
+		</rh-util:xmlElementContainer>
+
+		<au:assertPropertyEquals name="test-xmlElement.property8" value="&lt;Foo xmlns=&quot;abc.def&quot;&gt;&lt;Child1 xmlns=&quot;abc.def&quot;&gt;10&lt;/Child1&gt;&lt;Child2 xmlns=&quot;abc.def&quot;&gt;20&lt;/Child2&gt;&lt;/Foo&gt;"/>
+
+	</target>
+
+	<!-- =========================================================================================== -->
+
+</project>

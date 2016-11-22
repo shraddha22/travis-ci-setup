@@ -1,0 +1,143 @@
+#!/bin/bash 
+
+# Copyright 2011 Red Hat Inc.
+#
+# This file is part of solenopsis
+#
+# solenopsis is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 3
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+
+# Emit help...
+help() {
+	echo " "
+	echo "Usage:"
+	echo "     bsolenopsis [--classpath user-class-path] [--antversion the-ant-version] [standard ant command line options]"
+	echo " "
+	exit 0
+}
+
+# Error out when there are no Ant jars found...
+noAntJars() {
+	echo " "
+	echo "ERROR:  No Ant jars found!!!!  Cannot run solenopsis!"
+	echo " "
+	exit 1
+}
+
+# Convert for cygwin
+cygwinConvert() {
+    echo $1 | tr -s ':' ';' | sed -e "s/\/cygdrive\/\([a-z]\)\//\1:\\\/g" | tr -s '/' '\\'
+}
+
+# Default Ant script to run and Ant version to use...
+
+# Find script directory, resolving symlinks.
+SCRIPT_HOME="${BASH_SOURCE[0]}"
+while [ -h "$SCRIPT_HOME" ]; do # resolve $SCRIPT_HOME until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SCRIPT_HOME" )" && pwd )"
+  SCRIPT_HOME="$(readlink "$SCRIPT_HOME")"
+  [[ $SCRIPT_HOME != /* ]] && SCRIPT_HOME="$DIR/$SCRIPT_HOME" # if $SCRIPT_HOME was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+SCRIPT_HOME="$( cd -P "$( dirname "$SCRIPT_HOME" )" && pwd )"
+
+USER_FILE=${SCRIPT_HOME}/../ant/solenopsis.xml
+ANT_VERSION=1.9.6
+
+# Iterate over command line args...
+while [ $# -gt 0 ]
+do
+	if [ "$1" = "--classpath" ]
+	then
+		shift
+
+		# Hate preceeding colons in paths...
+		if [ "${USER_CLASSPATH}" = "" ]
+		then
+			USER_CLASSPATH="$1"
+		else
+			USER_CLASSPATH="${USER_CLASSPATH}:$1"
+		fi
+	elif [ "$1" = "-f" ]
+	then
+		shift
+
+		USER_FILE=$1
+	elif [ "$1" = "--antversion" ]
+	then
+		shift
+
+		ANT_VERSION=$1
+	elif [ "$1" = "-h" -o "$1" = "--help" ]
+	then
+		help
+    elif [ "${1:0:2}" = "-D" ]
+    then
+        NAME=`echo $1 | cut -f 1 -d '='`
+        VALUE=`echo $1 | cut -f 2 -d '='`
+
+        if [ "${VALUE}" != "" ]
+        then
+            SOLENOPSIS_ARGS="${SOLENOPSIS_ARGS} ${NAME}=\"${VALUE}\""
+        else
+            SOLENOPSIS_ARGS="${SOLENOPSIS_ARGS} $1"
+        fi
+	else
+		SOLENOPSIS_ARGS="${SOLENOPSIS_ARGS} $1"
+	fi
+
+	shift
+done
+
+# Make sure we have some version of Ant libraries
+if [ ! -e ${SCRIPT_HOME}/../ant/lib/${ANT_VERSION} ]
+then
+	noAntJars
+fi
+
+ANT_CLASSPATH=`find ${SCRIPT_HOME}/../ant/lib/${ANT_VERSION} -name \*.jar | tr -s '\n' ':'`
+
+# Make sure we have at least one jar...
+if [ "${ANT_CLASSPATH}" = "${SCRIPT_HOME}/../ant/lib/${ANT_VERSION}/:" ]
+then
+	noAntJars
+fi
+
+# Hate preceeding colons in paths...
+if [ "${USER_CLASSPATH}" = "" ]
+then
+	CLASSPATH="${ANT_CLASSPATH}"
+else
+	CLASSPATH="${USER_CLASSPATH}:${ANT_CLASSPATH}"
+fi
+
+if [ "${JAVA_OPTS}" != "" ]
+then
+    echo
+    echo "Using JAVA_OPTS:  [${JAVA_OPTS}]"
+    echo
+fi
+
+# Kick off ant...
+if [ "${OS}" = "Windows_NT" ]
+then
+    THE_SCRIPT=$(cygpath -pw "${SCRIPT_HOME}/../ant")
+    THE_CLASSPATH=$(cygpath -pw "${CLASSPATH}")
+    THE_USER_FILE=$(cygpath -pw "${USER_FILE}")
+else
+    THE_SCRIPT=${SCRIPT_HOME}/../ant
+    THE_CLASSPATH=${CLASSPATH}
+    THE_USER_FILE=${USER_FILE}
+fi
+
+echo "${SOLENOPSIS_ARGS}" | xargs java ${JAVA_OPTS} -Dhttps.protocols='TLSv1.1,TLSv1.2' -classpath ${THE_CLASSPATH} -Dant.home=${THE_SCRIPT} org.apache.tools.ant.Main -f ${THE_USER_FILE} 

@@ -1,0 +1,125 @@
+<!--
+# Copyright 2011 Red Hat Inc.
+#
+# This file is part of solenopsis
+#
+# solenopsis is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 3
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+-->
+
+<project name="SolenopsisSetup" basedir=".">
+    <!-- =========================================================================================== -->
+
+	<!--
+		Load up our solenopsis release info...
+	-->
+	<property file="solenopsis-release.properties"/>
+
+	<!--
+		In case this isn't an RPM based install...
+	-->
+	<property name="solenopsis.release.VERSION" value="N/A"/>
+
+    <!--
+        Define the property denoting which properties file to
+        use.  It's OK that this isn't defined - no failure arises
+        when the property does not exist when trying to load
+        the property file.
+    -->
+    <property name="sf.env" value=""/>
+
+	<!--
+		This is a global "catch all" for properties that can be used
+		across environments...  For example for placing the master source
+        directory from which an environment will be sync'd to or from...
+
+        This is sorta hacky but works - we load the initial solenopsis.properties
+        file to get the real value of solenopsis.env.HOME.  Then we use that to
+        attempt to load any environment defined via the sf.env property.  Finally
+        we load the solenopsis.properties file for real.
+	-->
+    <property file="${user.home}/solenopsis.properties" prefix="initial"/>
+    <property file="${initial.solenopsis.env.HOME}/environments/${sf.env}.properties"/>
+    <property file="${user.home}/solenopsis.properties"/>
+
+	<!--
+		When all else fails, allow for properties to be set
+		via the environment...
+	-->
+    <property environment="env"/>
+
+    <!-- =========================================================================================== -->
+
+	<!--
+		Default values if not set above...
+	-->
+	<property name="sf.antFile"                value=""/>
+
+    <property name="sf.url.PROD"               value="https://login.salesforce.com"/>
+    <property name="sf.url.SANDBOX"            value="https://test.salesforce.com"/>
+
+    <property name="sf.trace"                  value="false"/>
+    <property name="sf.allowMissingFiles"      value="true"/>
+    <property name="sf.runAllTests"            value="false"/>
+    <property name="sf.maxPoll"                value="300"/>
+    <property name="sf.ignoreWarnings"         value="false"/>
+    <property name="sf.checkOnly"              value="false"/>
+    <property name="sf.logType"                value="None"/>
+    <property name="sf.testClasses"            value=""/>
+    <property name="sf.dryRun"                 value=""/>
+    <property name="sf.xslDir"                 value=""/>
+
+	<dirname property="solenopsis.HOME"        file="${ant.file.SolenopsisSetup}"/>
+
+	<property name="solenopsis.lib.HOME"       value="${solenopsis.HOME}/lib"/>
+	<property name="solenopsis.props.HOME"     value="${solenopsis.HOME}/properties"/>
+	<property name="solenopsis.util.HOME"      value="${solenopsis.HOME}/util"/>
+    <property name="solenopsis.xsl.HOME"       value="${solenopsis.HOME}/../../xsl"/>
+
+    <property name="solenopsis.temp.DIR"       value="${java.io.tmpdir}/${user.name}/solenopsis/1.1/${solenopsis.env.DEPENDENT}"/>
+
+    <path id="solenopsis.script.PATH">
+        <fileset dir="${solenopsis.lib.HOME}" includes="*.jar"/>
+        <pathelement path="${solenopsis.bsh.HOME}"/>
+    </path>
+
+    <!-- =========================================================================================== -->
+
+    <property name="sf.destructiveChangesFile" value="destructiveChanges.xml"/>
+	<property name="sf.ignoreFile"             value=""/>
+	<property name="sf.replaceVarsFile"        value=""/>
+    <property name="sf.describeFileName"       value="sfdc-describe.txt"/>
+    <property name="sf.deployFileName"         value="sfdc-deploy.zip"/>
+	<property name="sf.deployFile"             value="${sf.tempDir}/${sf.deployFileName}"/>
+	<property name="sf.describeFile"           value="${sf.tempDir}/${sf.describeFileName}"/>
+	<property name="sf.packageFile"            value=""/>
+	<property name="sf.batchSize"              value="300"/>
+	<property name="sf.types"                  value=""/>
+    <property name="sf.purgeIgnores"           value="false"/>
+
+    <property name="sf.dumpFiles"              value=""/>
+    <property name="sf.showPasswords"          value=""/>
+
+    <!-- =========================================================================================== -->
+
+	<fail unless="solenopsis.env.HOME"     message="Please define the property solenopsis.env.HOME"/>
+	<fail unless="solenopsis.ENVIRONMENTS" message="Please define the property solenopsis.ENVIRONMENTS"/>
+
+    <!-- =========================================================================================== -->
+
+	<property name="solenopsis.credentials.HOME" value="${solenopsis.env.HOME}/credentials"/>
+
+    <!-- =========================================================================================== -->
+
+</project>

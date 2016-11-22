@@ -1,0 +1,438 @@
+#!/usr/bin/python
+
+# Copyright 2011 Red Hat Inc.
+#
+# This file is part of solenopsis
+#
+# solenopsis is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 3
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+
+"""This is where all the action happens.  This file picks the right library
+method to run
+"""
+
+__author__ = "Patrick Connelly (patrick@deadlypenguin.com)"
+__version__ = "1.2"
+
+import argparse
+import logging
+import sys
+import ConfigParser
+
+import lib.ant
+import lib.logger
+import lib.create
+import lib.environment
+import lib.operations
+
+ABSOLUTE = False
+FORCE = False
+DEBUG = False
+VERBOSE = False
+
+DEPENDENT = None
+MASTER = None
+HOME = None
+SFIGNORE = None
+
+TMPDIR = None
+MAXPOLL = None
+REQUESTID = None
+
+LOGTYPE = None
+CHECKONLY = False
+
+SRC_DIR = ""
+
+CONFIG_FILE = '/usr/share/solenopsis/config/defaults.cfg'
+
+PRIMARY_COMMANDS = [ 'push', 'destructive-push', 'git-destructive-push', 'cached-destructive-push',
+                    'git-push', 'pull-full', 'pull-full-to-master', 'pull',
+                    'pull-to-master', 'create', 'config', 'query', 'file-push',
+                    'describe-metadata', 'list-metadata', 'run-tests', 'report-diff',
+                    'delta-push', 'cached-delta-push',
+                    'generate-package', 'generate-full-package', 'selective-pull', 'selective-pull-to-master' ]
+LOG_TYPES = [ 'None', 'Debugonly', 'Profiling', 'Callout', 'Detail' ]
+METADATA_TYPES = [ 'CustomApplication', 'ApexClass', 'ApexComponent', 'Dashboard', 'DataCategoryGroup', 'Document',
+                    'EmailTemplate', 'EntitlementTemplate', 'HomePageComponent', 'HomePageLayout', 'CustomLabel',
+                    'Layout', 'Letterhead', 'CustomObject', 'CustomObjectTranslation', 'ApexPage', 'PermissionSet',
+                    'Portal', 'Profile', 'RemoteSiteSetting', 'Report', 'ReportType', 'Scontrol', 'CustomSite',
+                    'StaticResource', 'CustomTab', 'ApexTrigger', 'CustomPageWebLink', 'Workflow', 'GlobalPicklist',
+                    'GlobalValueSet', 'GlobalValueSetTranslation', 'StandardValueSet', 'StandardValueSetTranslation' ]
+SOL_VERSIONS = [ '1.1', '1.2' ]
+API_VERSIONS = [ '16.0', '17.0', '18.0', '19.0', '20.0', '21.0', '22.0', '23.0', '24.0', '25.0', '26.0', '27.0', '28.0', '29.0', '30.0', '31.0', '32.0', '33.0', '34.0' ]
+
+def setRelativity(status):
+    """Sets the relativity based on the environment home
+
+    status - True/False
+    """
+    global ABSOLUTE
+    ABSOLUTE = status
+
+def isRelative():
+    """Returns the relativity"""
+    return ABSOLUTE
+
+def setForce(status):
+    """Sets if file based actions should be forced
+
+    status - True/False
+    """
+    global FORCE
+    FORCE = status
+
+def isForced():
+    """Returns if file based actions should be forced"""
+    return FORCE
+
+def setSourceDir(path):
+    """Sets the source dir
+
+    path - The source dir
+    """
+    global SRC_DIR
+    SRC_DIR = path
+
+def getSourceDir():
+    """Gets the source dir"""
+    return SRC_DIR
+
+def checkSolenopsis():
+    """Checks to see if solenopsis is setup"""
+    if not lib.environment.hasConfigFile():
+        lib.logger.critical('Could not find solenopsis property file at "%s"' % (lib.environment.getDefaultConfig(),))
+        setup = raw_input("Would you like to set up solenopsis? (Y/N): ")
+        if setup.lower() == 'y':
+            lib.environment.setupInteractive()
+        else:
+            sys.exit(-1)
+
+def setup():
+    """Sets up and reads the config file"""
+    try:
+        config = ConfigParser.ConfigParser()
+        config.readfp(open(CONFIG_FILE))
+        lib.create.setApiVersion(config.get('general', 'api_version'))
+    except:
+        lib.logger.critical('Could not open config file "%s"' % (CONFIG_FILE,))
+        sys.exit(-1)
+
+def handlePriCommand(command, secondary):
+    """Does the bulk of the work translating the command into the calls
+
+    command - The command to run
+    secondary - The rest of the command to be passed on
+    """
+    if command == 'push':
+        checkSolenopsis()
+        lib.ant.push()
+    elif command == 'destructive-push':
+        checkSolenopsis()
+        lib.ant.destructivePush()
+    elif command == 'git-destructive-push':
+        checkSolenopsis()
+        lib.ant.gitDestructivePush()
+    elif command == 'cached-destructive-push':
+        checkSolenopsis()
+        lib.ant.cachedDestructivePush()
+    elif command == 'git-push':
+        checkSolenopsis()
+        lib.ant.gitPush()
+    elif command == 'file-push':
+        checkSolenopsis()
+        lib.environment.parseSolConfig()
+
+        home_key = ('solenopsis.env.%s.HOME' % (lib.environment.getMaster(),)).lower()
+        raw_config = lib.environment.getRawConfig()
+        root_dir = None
+
+        if raw_config.has_key(home_key):
+            root_dir = raw_config[home_key]
+
+        if HOME:
+            root_dir = HOME
+
+        lib.ant.setRootDir(root_dir)
+        lib.ant.filePush(secondary)
+    elif command == 'pull-full':
+        checkSolenopsis()
+        lib.ant.pullFull()
+    elif command == 'pull-full-to-master':
+        checkSolenopsis()
+        lib.ant.pullFullToMaster()
+    elif command == 'pull':
+        checkSolenopsis()
+        lib.ant.pull()
+    elif command == 'pull-to-master':
+        checkSolenopsis()
+        lib.ant.pullToMaster()
+    elif command == 'describe-metadata':
+        checkSolenopsis()
+        lib.ant.describeMetadata()
+    elif command == 'generate-package':
+        checkSolenopsis()
+        lib.ant.generatePackage()
+    elif command == 'generate-full-package':
+        checkSolenopsis()
+        lib.ant.generateFullPackage()
+    elif command == 'list-metadata':
+        checkSolenopsis()
+        lib.ant.listMetadata(secondary[0])
+    elif command == 'run-tests':
+        checkSolenopsis()
+
+        if secondary:
+            filenames = ','.join(secondary)
+            lib.logger.debug('Setting tests to run to %r' % (filenames,))
+            lib.ant.addFlag('sf.testClasses=%r' % (filenames,))
+
+        lib.ant.runTests()
+    elif command == 'selective-pull':
+        checkSolenopsis()
+        lib.ant.selectivePull()
+    elif command == 'selective-pull-to-master':
+        checkSolenopsis()
+        lib.ant.selectivePullToMaster()
+    elif command == 'report-diff':
+        checkSolenopsis()
+        lib.ant.reportDiff()
+    elif command == 'delta-push':
+        checkSolenopsis()
+        lib.ant.deltaPush()
+    elif command == 'cached-delta-push':
+        checkSolenopsis()
+        lib.ant.cachedDeltaPush()
+    elif command == 'create':
+        lib.create.setRelativity(isRelative())
+        lib.create.setForce(isForced())
+        lib.create.setSourceDir(getSourceDir())
+        lib.create.createFile(secondary)
+    elif command == 'config':
+        lib.environment.setForce(isForced())
+        lib.environment.config(secondary)
+    elif command == 'query':
+        lib.operations.prettyQuery(secondary[0], DEPENDENT)
+
+def handleArgs(args):
+    """Takes the command-line args and parses them into something meaningful
+
+    arg - The arguments
+    """
+    global DEPENDENT
+    global MASTER
+    global HOME
+
+    if args.debug:
+        lib.logger.setLevel(logging.DEBUG)
+
+    if args.verbose:
+        lib.logger.setLevel(logging.INFO)
+
+    if args.force:
+        setForce(args.force)
+
+    setRelativity(args.absolute)
+
+    if args.test:
+        lib.logger.debug('Enabling runAllTests')
+        lib.ant.addFlag('sf.runAllTests=true')
+
+    if args.env_dep:
+        lib.logger.debug('Setting the DEPENDENT environment to %r' % (args.env_dep,))
+        DEPENDENT = args.env_dep
+        lib.ant.addFlag('solenopsis.env.DEPENDENT=%r' % (args.env_dep,))
+        lib.ant.addFlag('sf.env=%r' % (args.env_dep,))
+
+    if args.env_master:
+        lib.logger.debug('Setting the MASTER environment to %r' % (args.env_master,))
+        MASTER = args.env_master
+        lib.ant.addFlag('solenopsis.env.MASTER=%r' % (args.env_master,))
+
+    if args.env_home:
+        lib.logger.debug('Setting the local.HOME environment to %r' % (args.env_home,))
+        HOME = args.env_home
+        lib.ant.addFlag('solenopsis.env.local.HOME=%r' % (args.env_home,))
+
+    if args.env_sfignore:
+        lib.logger.debug('Setting the sf.ignoreFile to %r' % (args.env_sfignore,))
+        SFIGNORE = args.env_sfignore
+        lib.ant.addFlag('sf.ignoreFile=%r' % (args.env_sfignore,))
+
+    if args.env_tmpdir:
+        lib.logger.debug('Setting the solenopsis.temp.DIR to %r' % (args.env_tmpdir,))
+        TMPDIR = args.env_tmpdir
+        lib.ant.addFlag('solenopsis.temp.DIR=%r' % (args.env_tmpdir,))
+
+    if args.env_pkgdir:
+        lib.logger.debug('Setting the sf.packageDir to %r' % (args.env_pkgdir,))
+        lib.ant.addFlag('sf.packageDir=%r' % (args.env_pkgdir,))
+
+    if args.env_maxpoll:
+        lib.logger.debug('Setting the sf.maxPoll to %r' % (args.env_maxpoll,))
+        MAXPOLL = args.env_maxpoll
+        lib.ant.addFlag('sf.maxPoll=%r' % (args.env_maxpoll,))
+
+    if args.env_requestid:
+        lib.logger.debug('Setting the sf.asyncRequestId to %r' % (args.env_requestid,))
+        REQUESTID = args.env_requestid
+        lib.ant.addFlag('sf.asyncRequestId=%r' % (args.env_requestid,))
+
+    if args.checkonly:
+        lib.logger.debug('Setting checkonly')
+        lib.ant.addFlag('sf.checkOnly=true');
+
+    if args.logtype:
+        lib.logger.debug('Setting sf.logType to %r' % (args.logtype,))
+        lib.ant.addFlag('sf.logType=%r' % (args.logtype,))
+
+    if args.solversion:
+        lib.logger.debug('Setting solenopsis.VERSION to %r' % (args.solversion,))
+        lib.ant.addFlag('solenopsis.VERSION=%r' % (args.solversion,))
+
+    if args.apiversion:
+        lib.logger.debug('Setting sf.version to %r' % (args.apiversion,))
+        lib.ant.addFlag('sf.version=%r' % (args.apiversion,))
+
+    if args.filecontains:
+        lib.logger.debug('Setting sf.filesContain to %r' % (args.filecontains,))
+        lib.ant.addFlag('sf.filesContain=%r' % (args.filecontains,))
+
+    if args.gitshell:
+        lib.logger.debug('Setting solenopsis.git-status.shell=true')
+        lib.ant.addFlag('solenopsis.git-status.shell=true')
+
+    if args.batchsize:
+        lib.logger.debug('Setting sf.batchSize to %r' % (args.batchsize,))
+        lib.ant.addFlag('sf.batchSize=%r' % (args.batchsize,))
+
+    if args.packagefile:
+        lib.logger.debug('Setting sf.packageFile to %r' % (args.packagefile,))
+        lib.ant.addFlag('sf.packageFile=%r' % (args.packagefile,))
+
+    if args.types:
+        lib.logger.debug('Setting sf.types to %r' % (args.types,))
+        lib.ant.addFlag('sf.types=%r' % (args.types,))
+
+    if args.dryrun:
+        lib.logger.debug('Setting dry run')
+        lib.ant.addFlag('sf.dryRun=true')
+
+    if args.fast:
+        lib.logger.debug('Setting fast deploy')
+        lib.ant.addFlag('sf.fastDeploy=true')
+
+    if args.antfile:
+        lib.logger.debug('Setting the sf.antFile to %r' % (args.antfile,))
+        lib.ant.addFlag('sf.antFile=%r' % (args.antfile,))
+
+    if args.dumpfiles:
+        lib.logger.debug('Setting dump files')
+        lib.ant.addFlag('sf.dumpFiles=true')
+
+        if args.showpasswords:
+            lib.logger.debug('Showing passwords in the dump files')
+            lib.ant.addFlag('sf.showPasswords=true')
+
+    if args.xsldir:
+        lib.logger.debug('Setting the sf.xslDir to %r' % (args.xsldir,))
+        lib.ant.addFlag('sf.xslDir=%r' % (args.xsldir))
+
+    if args.src:
+        setSourceDir(args.src)
+
+    handlePriCommand(args.pricommand[0], args.seccommand)
+
+if __name__ == "__main__":
+    setup()
+
+    parser = argparse.ArgumentParser(description='A set of commands to do Salesforce related work')
+
+    # True/False flags
+    parser.add_argument('-a', action='store_true', help='Absolute path should be used', dest='absolute')
+    parser.add_argument('-r', action='store_false', help='Relative path should be used', dest='absolute')
+    parser.add_argument('-d', action='store_true', help='Make the output very verbose', dest='debug')
+    parser.add_argument('-v', action='store_true', help='Make the output verbose', dest='verbose')
+    parser.add_argument('-f', action='store_true', help='Force overwrite', dest='force')
+    parser.add_argument('-t', action='store_true', help='Run all tests', dest='test')
+    parser.add_argument('--gitshell', action='store_true', help='Shell out for git instead of using jGit', dest='gitshell')
+
+    # Parse the enviroment information
+    parser.add_argument('-e', '--env', action='store',
+                        help='Then dependent enviroment', dest='env_dep',
+                        metavar='DEPENDENT')
+    parser.add_argument('-m', '--master', action='store',
+                        help='Then master enviroment', dest='env_master',
+                        metavar='MASTER')
+    parser.add_argument('-s', '--src', action='store',
+                        help='The src path', dest='src',
+                        metavar='PATH')
+    parser.add_argument('-l', '--home', action='store',
+                        help='The local.home path', dest='env_home',
+                        metavar='HOME')
+    parser.add_argument('-i', '--ignorefile', action='store',
+                        help='The sfdcignore file', dest='env_sfignore',
+                        metavar='SFIGNORE')
+    parser.add_argument('--tmpdir', action='store',
+                        help='The temporary directory', dest='env_tmpdir',
+                        metavar='TMPDIR')
+    parser.add_argument('--pkgdir', action='store',
+                        help='The package directory', dest='env_pkgdir',
+                        metavar='PKGDIR')
+    parser.add_argument('--maxpoll', action='store',
+                        help='The maximum amount of time to poll SFDC', dest='env_maxpoll',
+                        metavar='MAXPOLL')
+    parser.add_argument('--requestid', action='store',
+                        help='The ongoing request id to repoll for', dest='env_requestid',
+                        metavar='REQUESTID')
+    parser.add_argument('--checkonly', action='store_true',
+                        help='Will try to validate a deploy, and not do the deploy', dest='checkonly')
+    parser.add_argument('--logtype', action='store',
+                        help='The log type to use', dest='logtype', choices=LOG_TYPES,
+                        metavar='LOGTYPE')
+    parser.add_argument('--solversion', action='store',
+                        help='The version of solenopsis to run', dest='solversion', choices=SOL_VERSIONS,
+                        metavar='SOLVERSION')
+    parser.add_argument('--apiversion', action='store',
+                        help='The version of api to use', dest='apiversion', choices=API_VERSIONS,
+                        metavar='APIVERSION')
+    parser.add_argument('--filecontains', action='store',
+                        help='Check the files to see if they contain the string and push them', dest='filecontains')
+    parser.add_argument('--batchsize', action='store',
+                        help='The number of items to retrieve for multipart retrieves')
+    parser.add_argument('--types', action='store', choices=METADATA_TYPES,
+                        help='The metadata types to retrieve')
+    parser.add_argument('--packagefile', action='store',
+                        help='Fully qualified path to package.xml')
+    parser.add_argument('--dryrun', action='store_true', dest='dryrun',
+                        help='Do a dry run and do not actually preform the action')
+    parser.add_argument('--fast', action='store_true', dest='fast',
+                        help='Deploy using the Quick Deploy feature')
+    parser.add_argument('--antfile', action='store', dest='antfile',
+                        help='The location to the ant-salesforce jar')
+    parser.add_argument('--dump-files', action='store_true', dest='dumpfiles',
+                        help='If the build.xml should be dumped to disk')
+    parser.add_argument('--show-passwords', action='store_true', dest='showpasswords',
+                        help='Used in conjunction with --dump-files to show the passwords in cleartext in the build.xml')
+    parser.add_argument('--xsldir', action='store', dest='xsldir',
+                        help='Specifies where the xsls are stored to be applied')
+
+    # Handle primary command
+    parser.add_argument('pricommand', metavar='COMMAND', nargs=1,
+                        help='The command to run', choices=PRIMARY_COMMANDS)
+
+    parser.add_argument('seccommand', metavar='SUBCOMMAND', nargs='*',
+                        help='The rest of the commands')
+
+    handleArgs(parser.parse_args())
