@@ -5,5 +5,6 @@ set -ev
 SOL_ROOT="$TRAVIS_BUILD_DIR/build/solenopsis/scripts"
 
 cd $SOL_ROOT
-./bsolenopsis destructive-push
-./bsolenopsis run-tests
+
+./bsolenopsis push
+./bsolenopsis -Dsf.runAllTests=true run-tests
