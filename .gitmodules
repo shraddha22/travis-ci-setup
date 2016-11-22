@@ -1,6 +1,3 @@
 [submodule "src/build/solenopsis"]
 	path = src/build/solenopsis
 	url = git://github.com/solenopsis/Solenopsis.git
-[submodule "build/solenopsis"]
-	path = build/solenopsis
-	url = git://github.com/solenopsis/Solenopsis.git
