@@ -6,7 +6,7 @@ branches:
           - master
 before_script: 
 - chmod +x ./build/scripts/setup_credentials.sh
-- chmod +x ./build/scripts/deploy.sh
 script: 
 - ./build/scripts/setup_credentials.sh
+- chmod +x ./build/scripts/deploy.sh
 - ./build/scripts/deploy.sh
