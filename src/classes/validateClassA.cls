@@ -10,8 +10,7 @@ public with sharing class validateClassA {
        
        travis_test_obj__c [] objs = new travis_test_obj__c [1];
        objs[0] = b;
-       classA obj = new classA();
-       obj.updateTestField(objs);
+       classA.updateTestField(objs);
     
        // Retrieve the new book
        b = [SELECT test_field__c FROM travis_test_obj__c WHERE Id =:b.Id];
