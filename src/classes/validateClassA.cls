@@ -17,6 +17,6 @@ public with sharing class validateClassA {
        System.debug('Price after trigger fired: ' + b.test_field__c);
 
        // Test that the trigger correctly updated the price
-       System.assertEquals('Behin the Cloud', b.test_field__c);
+       System.assertEquals('Behind the Cloud', b.test_field__c);
     }
 }
