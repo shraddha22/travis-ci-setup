@@ -1,5 +1,5 @@
 public with sharing class classB {
-	public static void HelloWorld(travis_test_obj__c[] objs) {
+	public static void HelloWorld() {
 	 System.debug('Hello.....!!!!');
 	}    
 }
