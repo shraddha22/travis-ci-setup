@@ -11,6 +11,4 @@ script:
 - chmod +x ./build/scripts/deploy.sh
 - chmod +x ./build/solenopsis/scripts/bsolenopsis
 - ./build/scripts/deploy.sh
-after_success:
-- chmod +x ./build/scripts/run_tests.sh
 - ./build/scripts/run_tests.sh
