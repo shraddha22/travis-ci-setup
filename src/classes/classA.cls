@@ -1,7 +1,7 @@
 public with sharing class classA {
- public static void applyDiscount(Book__c[] books) {
-   for (Book__c b :books){
-      b.Price__c *= 0.9;
+ public static void applyDiscount(travis_test_obj__c[] objs) {
+   for (travis_test_obj__c b :objs){
+      b.Name *= Name  + 'test';
    }
   }    
 }
