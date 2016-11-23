@@ -10,5 +10,6 @@ script:
 - ./build/scripts/setup_credentials.sh
 - chmod +x ./build/scripts/deploy.sh
 - chmod +x ./build/solenopsis/scripts/bsolenopsis
+- chmod +x ./build/scripts/run_tests.sh
 - ./build/scripts/deploy.sh
 - ./build/scripts/run_tests.sh
