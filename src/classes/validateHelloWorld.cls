@@ -4,7 +4,7 @@ public with sharing class validateHelloWorld {
 	  	Account a = new Account(Name = 'account');
 	  	insert a;
 		classB.HelloWorld(a);
-		System.assertEquals('testaccount', a.Name);
+		System.assertEquals('account', a.Name);
     }
     
 }
