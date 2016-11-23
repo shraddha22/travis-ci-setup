@@ -2,9 +2,8 @@
 public with sharing class validateHelloWorld {
 	  static testMethod void validateHelloWorld() {
 	  	Account a = new Account(Name = 'account');
-	  	insert a;
 		classB.HelloWorld(a);
-		System.assertEquals('account', a.Name);
+		System.assertEquals('testaccount', b.Name);
     }
     
 }
