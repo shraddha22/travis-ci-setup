@@ -9,6 +9,5 @@ before_script:
 script: 
 - ./build/scripts/setup_credentials.sh
 - chmod +x ./build/scripts/deploy.sh
-- ./build/scripts/deploy.sh
-after_script: 
 - chmod +x ./build/solenopsis/scripts/bsolenopsis
+- ./build/scripts/deploy.sh
