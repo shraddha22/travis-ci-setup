@@ -2,16 +2,16 @@
 public with sharing class validateClassA {
     static testMethod void validateHelloWorld() {
        sf_adaptor__travis_test_obj__c b = new sf_adaptor__travis_test_obj__c(Name='Behind the Cloud');
-       System.debug('Price before inserting new book: ' + b.Name);
+       System.debug('Price before inserting new book: ' + b.sf_adaptor__test_field__c);
 
        // Insert book
        insert b;
     
        // Retrieve the new book
-       b = [SELECT Name FROM sf_adaptor__travis_test_obj__c WHERE Id =:b.Id];
-       System.debug('Price after trigger fired: ' + b.Name);
+       b = [SELECT sf_adaptor__test_field__c FROM sf_adaptor__travis_test_obj__c WHERE Id =:b.Id];
+       System.debug('Price after trigger fired: ' + b.sf_adaptor__test_field__c);
 
        // Test that the trigger correctly updated the price
-       System.assertEquals('Behind the Cloud', b.Name);
+       System.assertEquals('Behind the Cloud', b.sf_adaptor__test_field__c);
     }
 }
