@@ -1,7 +1,7 @@
 @isTest 
 public with sharing class validateClassA {
     static testMethod void validateHelloWorld() {
-       sf_adaptor__travis_test_obj__c b = new sf_adaptor__travis_test_obj__c(Name='Behind the Cloud');
+       sf_adaptor__travis_test_obj__c b = new sf_adaptor__travis_test_obj__c(sf_adaptor__test_field__c='Behind the Cloud');
        System.debug('Price before inserting new book: ' + b.sf_adaptor__test_field__c);
 
        // Insert book
