@@ -202,7 +202,7 @@ var buildCoverallsCoverage = function () {
 /**
 * Posts the data to coveralls
 */
-var postToCoveralls = function () {
+/*var postToCoveralls = function () {
 	'use strict';
 
 	var fs_stats, post_options,
@@ -236,7 +236,7 @@ var postToCoveralls = function () {
 	});
 
 	return deferred.promise;
-};
+}; */
 
 Q.fcall(sfdcLogin)
 	.then(buildClassIdToClassDataMap)
