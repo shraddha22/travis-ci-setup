@@ -20,10 +20,10 @@ EOF
 mkdir -p $SOL_CREDDIR
 
 cat >$SOL_CREDFILE <<EOF
-username = shraddha_abc@abc.com
-password = test@test123
-token = ECwx2OpMbX0M40tvlDWkcDZI
-url = https://login.salesforce.com
+username = $SFDC_USERNAME
+password = $SFDC_PASSWORD
+token = $SFDC_TOKEN
+url = $SFDC_URL
 sf.version = 35.0
 EOF
 
